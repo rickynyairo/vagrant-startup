@@ -1,0 +1,46 @@
+version: "3.1"
+volumes:
+  mongo_data:
+  certificates:
+services:
+  sms-api:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    container_name: sms-management-api
+    image: api:latest
+    links:
+      - mongo
+    expose:
+      - 3001
+    volumes:
+      - ${PWD:-.}:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - MONGO_DB_URL=${MONGO_DB_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - PORT=${PORT}
+    command: yarn dev
+    tty: true
+    stdin_open: true
+  mongo:
+    restart: unless-stopped
+    image: mongo:4.0.1
+    container_name: sms-api-db
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - 27017:27017
+  nginx:
+    image: nginx:latest
+    container_name: dev_nginx
+    links:
+      - sms-api
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx_error.log:/etc/nginx/error_log.log
+      - "certificates:/etc/letsencrypt/"
+    ports:
+      - 3001:3001

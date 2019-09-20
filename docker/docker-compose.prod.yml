@@ -1,0 +1,25 @@
+version: "3.1"
+volumes:
+  mongo_data:
+services:
+  sms-api:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    restart: unless-stopped
+    container_name: sms-management-api-prod
+    image: api:latest
+    ports:
+      - 3001:3001
+      - 9229:9229
+    volumes:
+      - ${PWD:-.}:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=${NODE_ENV}
+      - MONGO_DB_URL=${MONGO_DB_URL}
+      - SESSION_SECRET=${SESSION_SECRET}
+      - PORT=${PORT}
+    command: yarn start
+    tty: true
+    stdin_open: true
